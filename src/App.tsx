@@ -157,7 +157,7 @@ function App() {
               <span className="titlebar-text">생성 중</span>
             </div>
             <div className="window-body progress-body">
-              <p>{activeProvider}에 요청을 보냈습니다. 완성되면 아래에 창이 열립니다.</p>
+              <p>{activeProvider}가 코드를 작성하고 있습니다. 아래 창의 코드 탭에서 실시간으로 보이고, 완성되면 미리보기로 넘어갑니다.</p>
               <div className="progress-bar" aria-hidden="true" />
             </div>
           </div>
