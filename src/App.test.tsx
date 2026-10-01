@@ -11,7 +11,10 @@ beforeEach(() => {
     vi.fn(async (url: string) =>
       url === '/api/config'
         ? Response.json({ envKeys: { anthropic: true, google: true } })
-        : Response.json({ code: 'const Card = () => <div>카드</div>;\nrender(<Card />);' }),
+        : new Response(
+            `${JSON.stringify({ type: 'done', code: 'const Card = () => <div>카드</div>;\nrender(<Card />);' })}\n`,
+            { headers: { 'Content-Type': 'application/x-ndjson' } },
+          ),
     ),
   );
 });

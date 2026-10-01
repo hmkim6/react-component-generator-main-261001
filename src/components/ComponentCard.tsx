@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { GeneratedComponent } from '../types';
 import { LivePreview } from './LivePreview';
 import { CodeView } from './CodeView';
+import { toStreamingDisplay } from '../utils/streamingCode';
 
 interface ComponentCardProps {
   component: GeneratedComponent;
@@ -18,7 +19,15 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 
 export function ComponentCard({ component, onRemove, onRegenerate, isLoading }: ComponentCardProps) {
-  const [activeTab, setActiveTab] = useState<Tab>('preview');
+  const [activeTab, setActiveTab] = useState<Tab>(component.isStreaming ? 'code' : 'preview');
+  const [wasStreaming, setWasStreaming] = useState(component.isStreaming);
+
+  // 스트리밍이 끝나는 순간 완성된 컴포넌트를 바로 보여주도록 미리보기 탭으로 넘긴다.
+  // effect 대신 렌더 중에 이전 값과 비교해 갱신한다(React 권장 패턴, 추가 렌더 없이 반영).
+  if (wasStreaming !== component.isStreaming) {
+    setWasStreaming(component.isStreaming);
+    if (wasStreaming && !component.isStreaming) setActiveTab('preview');
+  }
   const [previewKey, setPreviewKey] = useState(0);
   const createdAt = component.createdAt.toLocaleTimeString('ko-KR', {
     hour: '2-digit',
@@ -51,6 +60,7 @@ export function ComponentCard({ component, onRemove, onRegenerate, isLoading }: 
               aria-controls={panelId}
               className={`tab ${activeTab === tab.id ? 'tab--active' : ''}`}
               onClick={() => setActiveTab(tab.id)}
+              disabled={tab.id === 'preview' && component.isStreaming}
             >
               {tab.label}
             </button>
@@ -76,7 +86,9 @@ export function ComponentCard({ component, onRemove, onRegenerate, isLoading }: 
         {activeTab === 'preview' ? (
           <LivePreview key={previewKey} code={component.code} />
         ) : (
-          <CodeView code={component.code} />
+          <CodeView
+            code={component.isStreaming ? toStreamingDisplay(component.code) : component.code}
+          />
         )}
       </div>
     </article>
