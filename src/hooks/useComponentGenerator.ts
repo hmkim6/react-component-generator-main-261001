@@ -27,7 +27,11 @@ export function useComponentGenerator(): UseComponentGeneratorReturn {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    saveJSON(STORAGE_KEYS.components, components);
+    // 스트리밍 중인 카드는 미완성 코드라 저장하지 않는다. 새로고침 후 반쪽 코드가 실행되는 것을 막는다.
+    saveJSON(
+      STORAGE_KEYS.components,
+      components.filter((c) => !c.isStreaming),
+    );
   }, [components]);
 
   const generate = useCallback(async (prompt: string, apiKey: string | undefined, provider: Provider) => {

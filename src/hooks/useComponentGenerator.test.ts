@@ -164,4 +164,24 @@ describe('useComponentGenerator 저장', () => {
     const stored = loadJSON<{ prompt: string }[]>(STORAGE_KEYS.components, []);
     expect(stored.map((c) => c.prompt)).toEqual(['프로필 카드']);
   });
+
+  it('스트리밍 중인 미완성 컴포넌트는 저장하지 않는다', async () => {
+    saveJSON(STORAGE_KEYS.components, [
+      { id: 'old', prompt: '기존 카드', code: 'render(<A />);', createdAt: '2026-10-01T09:30:00Z' },
+    ]);
+    const stream = streamingResponse();
+    vi.stubGlobal('fetch', vi.fn(async () => stream.response));
+    const { result } = renderHook(() => useComponentGenerator());
+
+    act(() => {
+      void result.current.generate('프로필 카드', undefined, 'google');
+    });
+    act(() => {
+      stream.send({ type: 'delta', text: 'const Card = (' });
+    });
+
+    await waitFor(() => expect(result.current.components[0].code).toBe('const Card = ('));
+    const stored = loadJSON<{ id: string }[]>(STORAGE_KEYS.components, []);
+    expect(stored.map((c) => c.id)).toEqual(['old']);
+  });
 });
