@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useComponentGenerator } from './useComponentGenerator';
+import { loadJSON, saveJSON } from '../utils/storage';
+import { STORAGE_KEYS } from '../utils/persisted';
 
 // 테스트가 이벤트를 하나씩 흘려보낼 수 있는 NDJSON 스트림 응답
 function streamingResponse() {
@@ -130,5 +132,36 @@ describe('useComponentGenerator 스트리밍', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.components).toEqual([]);
     expect(result.current.error).toBe('응답이 중간에 끊겼습니다. 다시 시도해주세요.');
+  });
+});
+
+describe('useComponentGenerator 저장', () => {
+  it('localStorage에 저장된 컴포넌트 목록으로 시작한다', () => {
+    saveJSON(STORAGE_KEYS.components, [
+      { id: '1', prompt: '카드', code: 'render(<A />);', createdAt: '2026-10-01T09:30:00Z' },
+    ]);
+
+    const { result } = renderHook(() => useComponentGenerator());
+
+    expect(result.current.components).toHaveLength(1);
+    expect(result.current.components[0].createdAt).toBeInstanceOf(Date);
+  });
+
+  it('생성에 성공하면 새 컴포넌트를 localStorage에 저장한다', async () => {
+    const stream = streamingResponse();
+    vi.stubGlobal('fetch', vi.fn(async () => stream.response));
+    const { result } = renderHook(() => useComponentGenerator());
+
+    act(() => {
+      void result.current.generate('프로필 카드', undefined, 'google');
+    });
+    act(() => {
+      stream.send({ type: 'done', code: 'render(<Card />);' });
+      stream.close();
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    const stored = loadJSON<{ prompt: string }[]>(STORAGE_KEYS.components, []);
+    expect(stored.map((c) => c.prompt)).toEqual(['프로필 카드']);
   });
 });
