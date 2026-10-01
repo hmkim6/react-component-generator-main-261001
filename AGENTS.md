@@ -20,6 +20,11 @@
 - API 키는 서버(`process.env`)에서만 읽는다. `VITE_` 접두사 환경변수나 클라이언트 번들에 키를 넣지 않는다. `/api/config`는 키 존재 여부(boolean)만 반환한다 (`server/index.ts:59-62`, `server/index.ts:147-156`).
 - 사용자가 UI에 입력한 키는 메모리 state에만 둔다. localStorage/sessionStorage/쿠키에 저장하지 않는다. UI가 "키는 브라우저에 저장되지 않습니다"라고 사용자에게 약속한다 (`src/App.tsx:140`).
 - `.env`는 커밋하지 않는다 (`.gitignore`). 워크트리에는 `.worktreeinclude`로 복사된다.
+- 민감 파일은 읽지도 수정하지도 않는다. Claude Code는 `.claude/settings.json`의 `permissions.deny`로 강제하며, 이 설정이 적용되지 않는 에이전트(Codex 등)도 같은 범위를 지킨다.
+  - 파일: `.env`, `.env.*`(`.env.example` 포함), 이름에 `secret`/`credential`이 들어간 파일·폴더, `*.pem`, `*.key`, `*.p12`, `*.pfx`, SSH 키(`id_rsa*`, `id_ed25519*`, `id_ecdsa*`), `~/.ssh`, `~/.aws`, `.netrc`, `.npmrc`, `.pgpass`, `~/.docker/config.json`, `~/.kube/config`, `gh/hosts.yml`.
+  - 셸 명령: 위 파일명이나 `secret`·`credential`·`password`·`API_KEY`·`_TOKEN`·`PRIVATE_KEY`가 들어간 명령, 환경변수 덤프(`env`, `printenv`, `set`, `export -p`, `declare -x`/`-p`, `compgen -e`, `/proc/*/environ`), 토큰 조회(`gh auth token`, `--show-token`, macOS `security find-*-password`/`dump-keychain`).
+  - 차단되면 우회하지 않는다. 와일드카드(`.e*`), 따옴표 쪼개기, 문자 코드 조립, 스크립트 파일 경유 등은 규칙이 못 잡는 구멍일 뿐 허용이 아니다. 필요한 값은 사용자에게 직접 확인을 요청한다.
+  - 코드에서 `process.env` 등을 찾을 때는 Bash `grep` 대신 Grep 도구를 쓴다. Bash 규칙(`*.env*`)이 문자열만으로도 명령을 막는다.
 
 ### Do's & Don'ts
 
