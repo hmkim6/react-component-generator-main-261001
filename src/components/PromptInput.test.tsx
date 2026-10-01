@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PromptInput } from './PromptInput';
 
@@ -69,5 +69,51 @@ describe('PromptInput', () => {
 
     expect(textbox).toHaveAttribute('aria-invalid', 'true');
     expect(textbox).toHaveAccessibleDescription('프롬프트는 500자 이하로 입력해주세요. (현재 501자)');
+  });
+
+  it('최근 프롬프트를 누르면 입력란에 채워진다', async () => {
+    const user = userEvent.setup();
+    render(
+      <PromptInput onGenerate={vi.fn()} isLoading={false} history={['검색 필터 바', '프로필 카드']} />,
+    );
+
+    const recent = screen.getByRole('list', { name: '최근 프롬프트' });
+    await user.click(within(recent).getByRole('button', { name: '프로필 카드' }));
+
+    expect(screen.getByRole('textbox')).toHaveValue('프로필 카드');
+  });
+
+  it('최근 프롬프트의 삭제 버튼을 누르면 해당 항목으로 onRemoveHistory가 호출된다', async () => {
+    const onRemoveHistory = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <PromptInput
+        onGenerate={vi.fn()}
+        isLoading={false}
+        history={['검색 필터 바', '프로필 카드']}
+        onRemoveHistory={onRemoveHistory}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: '"프로필 카드" 기록 삭제' }));
+
+    expect(onRemoveHistory).toHaveBeenCalledWith('프로필 카드');
+  });
+
+  it('최근 프롬프트 전체 지우기를 누르면 onClearHistory가 호출된다', async () => {
+    const onClearHistory = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <PromptInput
+        onGenerate={vi.fn()}
+        isLoading={false}
+        history={['프로필 카드']}
+        onClearHistory={onClearHistory}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: '최근 프롬프트 모두 지우기' }));
+
+    expect(onClearHistory).toHaveBeenCalled();
   });
 });
