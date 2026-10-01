@@ -1,0 +1,69 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: light;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+
+  /* Platinum-era desktop: putty plastic windows on a dithered slate desk */
+  --desk: #4d6b73;
+  --desk-dot: #5d7c84;
+  --plastic: #dad5c8;
+  --plastic-hi: #f6f3ea;
+  --plastic-lo: #9e9888;
+  --paper: #ffffff;
+  --ink: #000000;
+  --ink-soft: #4a463d;
+  --select: #3443c9;
+  --select-soft: #d4d7ff;
+  --ok: #2f8a3a;
+  --stop: #b3261e;
+
+  --font-pixel: Galmuri11, 'IBM Plex Sans KR', sans-serif;
+  --font-body: 'IBM Plex Sans KR', ui-sans-serif, system-ui, sans-serif;
+  --font-code: 'IBM Plex Mono', 'IBM Plex Sans KR', ui-monospace, monospace;
+}
+
+body {
+  min-height: 100vh;
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink);
+  background-color: var(--desk);
+  /* 1-bit checker dither, the classic desktop pattern */
+  background-image:
+    linear-gradient(45deg, var(--desk-dot) 25%, transparent 25%, transparent 75%, var(--desk-dot) 75%),
+    linear-gradient(45deg, var(--desk-dot) 25%, transparent 25%, transparent 75%, var(--desk-dot) 75%);
+  background-size: 4px 4px;
+  background-position:
+    0 0,
+    2px 2px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--select);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--select);
+  color: #ffffff;
+}
