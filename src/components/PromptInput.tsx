@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { validatePrompt, MAX_PROMPT_LENGTH } from '../utils/validatePrompt';
 
 interface PromptInputProps {
   onGenerate: (prompt: string) => void;
@@ -16,10 +17,11 @@ const EXAMPLES = [
 
 export function PromptInput({ onGenerate, isLoading }: PromptInputProps) {
   const [prompt, setPrompt] = useState('');
+  const validation = validatePrompt(prompt);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (prompt.trim() && !isLoading) {
+    if (validation.isValid && !isLoading) {
       onGenerate(prompt.trim());
     }
   };
@@ -37,20 +39,30 @@ export function PromptInput({ onGenerate, isLoading }: PromptInputProps) {
           placeholder="예: 고객 목록 테이블 위에 들어갈 검색 필터 바. 상태, 담당자, 날짜 범위 필터가 필요해."
           className="prompt-textarea"
           rows={4}
+          aria-invalid={validation.error ? true : undefined}
+          aria-describedby={validation.error ? 'prompt-error' : undefined}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
               handleSubmit(e);
             }
           }}
         />
+        {validation.error && (
+          <p id="prompt-error" className="prompt-error" role="alert">
+            {validation.error}
+          </p>
+        )}
         <div className="prompt-actions">
           <span className="prompt-shortcut">
             <kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>Enter</kbd>로 바로 생성
           </span>
+          <span className="prompt-count">
+            {validation.length} / {MAX_PROMPT_LENGTH}
+          </span>
           <button
             type="submit"
             className="btn btn--default"
-            disabled={!prompt.trim() || isLoading}
+            disabled={!validation.isValid || isLoading}
           >
             {isLoading ? '생성 중...' : '컴포넌트 생성'}
           </button>
