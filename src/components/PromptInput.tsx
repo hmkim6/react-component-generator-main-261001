@@ -4,6 +4,9 @@ import { validatePrompt, MAX_PROMPT_LENGTH } from '../utils/validatePrompt';
 interface PromptInputProps {
   onGenerate: (prompt: string) => void;
   isLoading: boolean;
+  history?: string[];
+  onRemoveHistory?: (prompt: string) => void;
+  onClearHistory?: () => void;
 }
 
 const EXAMPLES = [
@@ -15,7 +18,13 @@ const EXAMPLES = [
   '테이블 행 상세보기 패널. 선택한 고객의 기본 정보와 최근 활동 표시',
 ];
 
-export function PromptInput({ onGenerate, isLoading }: PromptInputProps) {
+export function PromptInput({
+  onGenerate,
+  isLoading,
+  history = [],
+  onRemoveHistory,
+  onClearHistory,
+}: PromptInputProps) {
   const [prompt, setPrompt] = useState('');
   const validation = validatePrompt(prompt);
 
@@ -68,23 +77,64 @@ export function PromptInput({ onGenerate, isLoading }: PromptInputProps) {
           </button>
         </div>
       </form>
-      <div className="examples">
-        <p className="examples-label" id="examples-label">
-          예시를 고르면 입력란에 채워집니다
-        </p>
-        <ul className="examples-list" aria-labelledby="examples-label">
-          {EXAMPLES.map((example) => (
-            <li key={example}>
+      <div className="prompt-side">
+        {history.length > 0 && (
+          <div className="examples">
+            <div className="history-header">
+              <p className="examples-label" id="history-label">
+                최근 프롬프트
+              </p>
               <button
                 type="button"
-                className={`example-row ${prompt === example ? 'example-row--selected' : ''}`}
-                onClick={() => setPrompt(example)}
+                className="btn"
+                aria-label="최근 프롬프트 모두 지우기"
+                onClick={onClearHistory}
               >
-                {example}
+                모두 지우기
               </button>
-            </li>
-          ))}
-        </ul>
+            </div>
+            <ul className="examples-list" aria-labelledby="history-label">
+              {history.map((item) => (
+                <li key={item} className="history-item">
+                  <button
+                    type="button"
+                    className={`example-row ${prompt === item ? 'example-row--selected' : ''}`}
+                    onClick={() => setPrompt(item)}
+                  >
+                    {item}
+                  </button>
+                  <button
+                    type="button"
+                    className="history-remove"
+                    aria-label={`"${item}" 기록 삭제`}
+                    title="기록 삭제"
+                    onClick={() => onRemoveHistory?.(item)}
+                  >
+                    ×
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <div className="examples">
+          <p className="examples-label" id="examples-label">
+            예시를 고르면 입력란에 채워집니다
+          </p>
+          <ul className="examples-list" aria-labelledby="examples-label">
+            {EXAMPLES.map((example) => (
+              <li key={example}>
+                <button
+                  type="button"
+                  className={`example-row ${prompt === example ? 'example-row--selected' : ''}`}
+                  onClick={() => setPrompt(example)}
+                >
+                  {example}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );

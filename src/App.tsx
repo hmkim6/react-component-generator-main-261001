@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react';
 import { PromptInput } from './components/PromptInput';
 import { ComponentCard } from './components/ComponentCard';
 import { useComponentGenerator } from './hooks/useComponentGenerator';
+import { usePromptHistory } from './hooks/usePromptHistory';
 import type { Provider } from './types';
+import { loadJSON, saveJSON } from './utils/storage';
+import { STORAGE_KEYS, parseProvider } from './utils/persisted';
 import './App.css';
 
 const PROVIDER_CONFIG = {
@@ -13,7 +16,9 @@ const PROVIDER_CONFIG = {
 function App() {
   const [apiKey, setApiKey] = useState('');
   const [showKey, setShowKey] = useState(false);
-  const [provider, setProvider] = useState<Provider>('google');
+  const [provider, setProvider] = useState<Provider>(() =>
+    parseProvider(loadJSON(STORAGE_KEYS.provider, null)),
+  );
   const [keyNotice, setKeyNotice] = useState<string | null>(null);
   const [envKeys, setEnvKeys] = useState<Record<Provider, boolean>>({
     anthropic: false,
@@ -21,6 +26,11 @@ function App() {
   });
   const { components, isLoading, error, generate, removeComponent, clearAll } =
     useComponentGenerator();
+  const { history, addPrompt, removePrompt, clearHistory } = usePromptHistory();
+
+  useEffect(() => {
+    saveJSON(STORAGE_KEYS.provider, provider);
+  }, [provider]);
 
   useEffect(() => {
     fetch('/api/config')
@@ -40,6 +50,7 @@ function App() {
       return;
     }
     setKeyNotice(null);
+    addPrompt(prompt);
     generate(prompt, apiKey || undefined, provider);
   };
 
@@ -83,7 +94,13 @@ function App() {
               <span className="titlebar-text" id="composer-title">새 컴포넌트</span>
             </div>
             <div className="window-body">
-              <PromptInput onGenerate={handleGenerate} isLoading={isLoading} />
+              <PromptInput
+                onGenerate={handleGenerate}
+                isLoading={isLoading}
+                history={history}
+                onRemoveHistory={removePrompt}
+                onClearHistory={clearHistory}
+              />
             </div>
           </section>
 

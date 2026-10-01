@@ -340,6 +340,53 @@ kbd {
   text-align: center;
 }
 
+.prompt-side {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+  min-width: 0;
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.history-item {
+  display: flex;
+  align-items: stretch;
+}
+
+.history-item .example-row {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-remove {
+  flex: 0 0 auto;
+  width: 32px;
+  background: transparent;
+  border: 0;
+  border-left: 1px dotted var(--plastic-lo);
+  color: var(--ink-soft);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.history-remove:hover {
+  background: var(--stop);
+  color: #ffffff;
+}
+
+.history-remove:focus-visible {
+  outline-offset: -2px;
+}
+
 .examples {
   display: grid;
   gap: 8px;
